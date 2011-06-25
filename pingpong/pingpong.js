@@ -6,65 +6,82 @@ goog.provide('pingpong');
 goog.require('lime.Director');
 goog.require('lime.Scene');
 goog.require('lime.Layer');
-goog.require('lime.Circle');
-goog.require('lime.Label');
-goog.require('lime.animation.Spawn');
-goog.require('lime.animation.FadeTo');
-goog.require('lime.animation.ScaleTo');
-goog.require('lime.animation.MoveTo');
+goog.require('lime.Sprite');
 
+goog.require('pingpong.Player');
+goog.require('pingpong.Ball');
+goog.require('pingpong.Wall');
 
 // entrypoint
 pingpong.start = function(){
 
-	var director = new lime.Director(document.body,1024,768),
+	var director = new lime.Director(document.body,600,480),
 	    scene = new lime.Scene(),
-
-	    target = new lime.Layer().setPosition(512,384),
-        circle = new lime.Circle().setSize(150,150).setFill(255,150,0),
-        lbl = new lime.Label().setSize(160,50).setFontSize(30).setText('TOUCH ME!'),
-        title = new lime.Label().setSize(800,70).setFontSize(60).setText('Now move me around!')
-            .setOpacity(0).setPosition(512,80).setFontColor('#999').setFill(200,100,0,.1);
-
-
-    //add circle and label to target object
-    target.appendChild(circle);
-    target.appendChild(lbl);
-
-    //add target and title to the scene
-    scene.appendChild(target);
-    scene.appendChild(title);
-
-	director.makeMobileWebAppCapable();
-
-    //add some interaction
-    goog.events.listen(target,['mousedown','touchstart'],function(e){
-
-        //animate
-        target.runAction(new lime.animation.Spawn(
-            new lime.animation.FadeTo(.5).setDuration(.2),
-            new lime.animation.ScaleTo(1.5).setDuration(.8)
-        ));
-
-        title.runAction(new lime.animation.FadeTo(1));
-
-        //let target follow the mouse/finger
-        e.startDrag();
-
-        //listen for end event
-        e.swallow(['mouseup','touchend'],function(){
-            target.runAction(new lime.animation.Spawn(
-                new lime.animation.FadeTo(1),
-                new lime.animation.ScaleTo(1),
-                new lime.animation.MoveTo(512,384)
-            ));
-
-            title.runAction(new lime.animation.FadeTo(0));
-        });
-
-
-    });
-
+		
+		floor_ = new lime.Layer().setPosition(0,0),
+		walls_ = new lime.Layer().setPosition(0,0),
+		board_ = new lime.Layer().setPosition(0,0),
+		
+		playerOne = new pingpong.Player().setPosition(40, 240)
+										 .setRotation(180)
+										 .setMovementBounds(20,600,460,20),
+		playerTwo = new pingpong.Player().setPosition(560,240)
+										 .setMovementBounds(20,600,460,20),
+		ball = new pingpong.Ball().setPosition(320,240)
+		                          .setMovementBounds(20,620,460,20)
+		                          .setVelocity(.2)
+		                          .setResetPosition(320,240);
+		
+		
+	floor_.appendChild(new lime.Sprite().setPosition(150, 240)
+										.setSize(300,480)
+										.setFill(100,100,100));
+	
+	floor_.appendChild(new lime.Sprite().setPosition(450, 240)
+										.setSize(300,480)
+										.setFill(200,200,200));
+	
+	// horizontal walls
+	for (x = 10; x <= 630; x += 20) {
+	    walls_.appendChild(new pingpong.Wall().setPosition(x, 10));
+	    walls_.appendChild(new pingpong.Wall().setPosition(x, 470));
+	}
+	// vertical walls
+	for (y = 30; y <= 450; y += 20) {
+	    walls_.appendChild(new pingpong.Wall().setPosition(10, y));
+	    walls_.appendChild(new pingpong.Wall().setPosition(590, y));
+	}
+	
+	
+	scene.appendChild(floor_);
+	scene.appendChild(walls_);
+	scene.appendChild(board_);
+	scene.appendChild(playerOne);
+	scene.appendChild(playerTwo);
+	scene.appendChild(ball);
+	
+	//GAME LOGIC
+	
+	//moves the paddles
+	goog.events.listen(floor_,['mousedown','touchstart'],function(e) {
+		var player_ = (e.position.x <= 300) ? playerOne : playerTwo;
+		player_.runAction(
+			new lime.animation.MoveTo(
+				player_.alignBounds(
+					player_.getPosition().x,e.position.y))
+							  .setDuration(1));
+	});
+	
+	var hitPos_;
+	lime.scheduleManager.schedule(function(dt){
+	    if (hitPos_ = ball.updateAndCheckHit(dt, playerOne, playerTwo)) {
+	       console.log('player',(hitPos_.x <= 320) ? 1 : 2,'is a loser');
+	    };
+	},ball);
+	
+	
+	
+	
 	// set current scene active
 	director.replaceScene(scene);
 
