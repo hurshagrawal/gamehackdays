@@ -19,7 +19,7 @@ monsters.WIDTH = 800;
 monsters.GRAVITY = 600;
 monsters.JUMP = 1200;
 monsters.BOUNCE = .02;
-monsters.FRICTION = 1;
+monsters.FRICTION = .5;
 monsters.JUMPTIMEOUT = .5;
 
 monsters.jumping = false;
@@ -50,7 +50,7 @@ monsters.start = function(){
     var floorBody = world.CreateBody(createBox(0,
 							monsters.HEIGHT - borderThickness,
 							monsters.WIDTH,
-							borderThickness,
+							borderThickness*.6,
 							monsters.BOUNCE,
 							null));
 
@@ -101,7 +101,7 @@ monsters.start = function(){
     							borderThickness,
     							monsters.HEIGHT*.6,
     							monsters.WIDTH/4,
-    							borderThickness,
+    							borderThickness*.6,
     							monsters.BOUNCE,
 								null));
     
@@ -116,7 +116,7 @@ monsters.start = function(){
     							monsters.WIDTH*(3/4) - borderThickness,
     							monsters.HEIGHT*.6,
     							monsters.WIDTH/4,
-    							borderThickness,
+    							borderThickness*.6,
     							monsters.BOUNCE,
 								null));
     
@@ -129,9 +129,9 @@ monsters.start = function(){
 
       var platformThreeBody = world.CreateBody(createBox(
     							monsters.WIDTH*.33,
-    							monsters.HEIGHT*.3,
+    							monsters.HEIGHT*.35,
     							monsters.WIDTH/3,
-    							borderThickness,
+    							borderThickness*.6,
     							monsters.BOUNCE,
 								null));
     
